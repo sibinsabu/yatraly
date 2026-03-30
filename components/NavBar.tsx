@@ -42,10 +42,10 @@ export default function NavBar() {
             <button className="flex items-center gap-2 text-black font-medium hover:text-red-600 transition-colors p-2 hover:bg-gray-50 rounded-full">
               <Search size={22} className="text-black hover:text-red-600"/>
             </button>
-            <button className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-red-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+            <Link href="/login" className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-red-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
               <User size={20} />
               <span>Login / Register</span>
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,10 +81,10 @@ export default function NavBar() {
                  <Search size={18} />
                  Search Buses
               </button>
-              <button className="flex items-center justify-center gap-2 w-full bg-red-600 text-white px-4 py-3 rounded-md font-bold hover:bg-red-700 shadow-md transition">
+              <Link href="/login" className="flex items-center justify-center gap-2 w-full bg-red-600 text-white px-4 py-3 rounded-md font-bold hover:bg-red-700 shadow-md transition">
                 <User size={20} />
                 Login / Register
-              </button>
+              </Link>
             </div>
           </div>
         </div>
