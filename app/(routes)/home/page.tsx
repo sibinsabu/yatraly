@@ -1,4 +1,5 @@
-import { Search, MapPin, Calendar, Clock, ShieldCheck } from 'lucide-react';
+import { Search, Calendar, Clock, ShieldCheck, MapPin } from 'lucide-react';
+import CitySearchBox from '@/components/CitySearchBox';
 
 export default function HomePage() {
   return (
@@ -20,28 +21,10 @@ export default function HomePage() {
           <div className="bg-white p-4 md:p-6 rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row gap-4 items-center mt-4">
             
             {/* From */}
-            <div className="flex-1 w-full relative group">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <MapPin className="text-gray-400 group-focus-within:text-red-500 transition-colors" size={22} />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Leaving from..." 
-                className="w-full bg-gray-50 border border-gray-200 text-black text-lg font-semibold rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-              />
-            </div>
+            <CitySearchBox placeholder="Leaving from..." />
 
             {/* To */}
-            <div className="flex-1 w-full relative group">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <MapPin className="text-gray-400 group-focus-within:text-red-500 transition-colors" size={22} />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Going to..." 
-                className="w-full bg-gray-50 border border-gray-200 text-black text-lg font-semibold rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-              />
-            </div>
+            <CitySearchBox placeholder="Going to..." isDestination={true} />
 
             {/* Date */}
             <div className="flex-1 w-full relative group">
