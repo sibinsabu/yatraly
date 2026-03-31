@@ -6,6 +6,8 @@ import { MapPin, Loader2 } from 'lucide-react';
 interface CitySearchBoxProps {
   placeholder: string;
   isDestination?: boolean;
+  value?: string;
+  onChange?: (val: string) => void;
 }
 
 interface PlaceResult {
@@ -19,10 +21,10 @@ interface PlaceResult {
   };
 }
 
-export default function CitySearchBox({ placeholder, isDestination = false }: CitySearchBoxProps) {
+export default function CitySearchBox({ placeholder, isDestination = false, value = '', onChange }: CitySearchBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCity, setSelectedCity] = useState(value);
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -94,7 +96,10 @@ export default function CitySearchBox({ placeholder, isDestination = false }: Ci
         value={selectedCity || query}
         onChange={(e) => {
           setQuery(e.target.value);
-          if (selectedCity) setSelectedCity('');
+          if (selectedCity) {
+            setSelectedCity('');
+            if (onChange) onChange('');
+          }
           setIsOpen(true);
         }}
         onFocus={() => {
@@ -126,6 +131,7 @@ export default function CitySearchBox({ placeholder, isDestination = false }: Ci
                     key={place.place_id}
                     onClick={() => {
                       setSelectedCity(formattedName);
+                      if (onChange) onChange(formattedName);
                       setQuery(''); // Reset query so input shows selectedCity
                       setIsOpen(false);
                     }}

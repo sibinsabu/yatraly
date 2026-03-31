@@ -1,7 +1,15 @@
+'use client';
+
+import { useState } from 'react';
 import { Search, Calendar, Clock, ShieldCheck, MapPin } from 'lucide-react';
 import CitySearchBox from '@/components/CitySearchBox';
+import Link from 'next/link';
 
 export default function HomePage() {
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [date, setDate] = useState('');
+
   return (
     <div className="flex-1 w-full relative bg-white">
       {/* Hero Section */}
@@ -21,10 +29,19 @@ export default function HomePage() {
           <div className="bg-white p-4 md:p-6 rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row gap-4 items-center mt-4">
             
             {/* From */}
-            <CitySearchBox placeholder="Leaving from..." />
+            <CitySearchBox 
+              placeholder="Leaving from..." 
+              value={from}
+              onChange={(val) => setFrom(val)}
+            />
 
             {/* To */}
-            <CitySearchBox placeholder="Going to..." isDestination={true} />
+            <CitySearchBox 
+              placeholder="Going to..." 
+              isDestination={true} 
+              value={to}
+              onChange={(val) => setTo(val)}
+            />
 
             {/* Date */}
             <div className="flex-1 w-full relative group">
@@ -33,15 +50,20 @@ export default function HomePage() {
               </div>
               <input 
                 type="date" 
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 text-black text-lg font-semibold rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
               />
             </div>
 
             {/* Search Button */}
-            <button className="w-full md:w-auto bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-900 transition shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 transform hover:-translate-y-1">
+            <Link 
+              href={{ pathname: '/search', query: { from, to, date } }}
+              className="w-full md:w-auto bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-900 transition shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 transform hover:-translate-y-1"
+            >
               <Search size={22} />
               Search
-            </button>
+            </Link>
           </div>
         </div>
         

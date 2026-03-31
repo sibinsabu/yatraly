@@ -1,11 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { Bus, User, Search, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { Bus, User, Search, Menu, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <nav className="bg-white sticky top-0 z-50 shadow-sm border-b border-gray-100">
@@ -42,10 +52,25 @@ export default function NavBar() {
             <button className="flex items-center gap-2 text-black font-medium hover:text-red-600 transition-colors p-2 hover:bg-gray-50 rounded-full">
               <Search size={22} className="text-black hover:text-red-600"/>
             </button>
-            <Link href="/login" className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-red-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-              <User size={20} />
-              <span>Login / Register</span>
-            </Link>
+            
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-black font-bold">Hi, {user.displayName || "Traveler"}</span>
+                <button 
+                  onClick={() => signOut(auth)}
+                  className="flex items-center gap-2 bg-gray-100 text-black px-5 py-2.5 rounded-full font-bold hover:bg-gray-200 transition-all"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link href="/login" className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-red-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+                <User size={20} />
+                <span>Login / Register</span>
+              </Link>
+            )}
+            
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,10 +106,18 @@ export default function NavBar() {
                  <Search size={18} />
                  Search Buses
               </button>
-              <Link href="/login" className="flex items-center justify-center gap-2 w-full bg-red-600 text-white px-4 py-3 rounded-md font-bold hover:bg-red-700 shadow-md transition">
-                <User size={20} />
-                Login / Register
-              </Link>
+              
+              {user ? (
+                 <button onClick={() => signOut(auth)} className="flex items-center justify-center gap-2 w-full bg-black text-white px-4 py-3 rounded-md font-bold hover:bg-gray-900 shadow-md transition">
+                   <LogOut size={20} />
+                   Logout ({user.displayName || "Traveler"})
+                 </button>
+              ) : (
+                <Link href="/login" className="flex items-center justify-center gap-2 w-full bg-red-600 text-white px-4 py-3 rounded-md font-bold hover:bg-red-700 shadow-md transition">
+                  <User size={20} />
+                  Login / Register
+                </Link>
+              )}
             </div>
           </div>
         </div>

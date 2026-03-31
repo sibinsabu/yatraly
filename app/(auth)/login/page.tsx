@@ -1,9 +1,50 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Bus, Mail, Lock, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bus, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  // Form State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  // UI State
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      setIsLoading(true);
+      
+      // Firebase authentication
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Success, route to home
+      router.push('/home');
+      
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please try again.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else {
+        setError(err.message || 'An error occurred during sign in.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-80px)] w-full flex bg-gray-50">
       {/* Left Design Section */}
@@ -53,7 +94,14 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="mt-10 space-y-6" onSubmit={(e) => e.preventDefault()}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
+              <p className="font-semibold text-sm leading-relaxed">{error}</p>
+            </div>
+          )}
+
+          <form className="mt-6 space-y-6" onSubmit={handleLogin}>
             <div className="space-y-5">
               
               {/* Email Input */}
@@ -66,6 +114,8 @@ export default function LoginPage() {
                   <input
                     type="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Enter your email"
                   />
@@ -87,6 +137,8 @@ export default function LoginPage() {
                   <input
                     type="password"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Enter your password"
                   />
@@ -108,9 +160,19 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transform transition hover:-translate-y-1"
+              disabled={isLoading}
+              className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transform transition hover:-translate-y-1 disabled:opacity-75 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
             >
-              Sign In <ArrowRight size={20} />
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  Sign In <ArrowRight size={20} />
+                </>
+              )}
             </button>
           </form>
           

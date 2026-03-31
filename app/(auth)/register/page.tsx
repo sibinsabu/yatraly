@@ -1,9 +1,70 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Bus, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bus, Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  
+  // Form State
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // UI State
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Basic Validation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password should be at least 6 characters");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Firebase specific account creation
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update Name Profile
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+      }
+      
+      // Success, route to home
+      router.push('/home');
+      
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please sign in.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address format.');
+      } else {
+        setError(err.message || 'An error occurred during registration.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-80px)] w-full flex bg-gray-50">
       {/* Left Design Section */}
@@ -53,7 +114,14 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form className="mt-10 space-y-6" onSubmit={(e) => e.preventDefault()}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
+              <p className="font-semibold text-sm leading-relaxed">{error}</p>
+            </div>
+          )}
+
+          <form className="mt-6 space-y-6" onSubmit={handleRegister}>
             <div className="space-y-5">
               
               {/* Name Input */}
@@ -66,6 +134,8 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="e.g. John Doe"
                   />
@@ -82,6 +152,8 @@ export default function RegisterPage() {
                   <input
                     type="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="e.g. name@company.com"
                   />
@@ -98,6 +170,8 @@ export default function RegisterPage() {
                   <input
                     type="password"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Create a strong password"
                   />
@@ -114,6 +188,8 @@ export default function RegisterPage() {
                   <input
                     type="password"
                     required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Repeat your password"
                   />
@@ -137,9 +213,19 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transform transition hover:-translate-y-1"
+              disabled={isLoading}
+              className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transform transition hover:-translate-y-1 disabled:opacity-75 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
             >
-              Finish Registration <ArrowRight size={20} />
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Finish Registration <ArrowRight size={20} />
+                </>
+              )}
             </button>
           </form>
           
