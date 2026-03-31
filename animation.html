@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    background-color: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 80px;
+    font-size: 24px;
+    line-height: 1.5;
+  }
+  #container {
+    white-space: pre-wrap;
+    max-width: 900px;
+  }
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background-color: #000;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="container"></div><span class="cursor"></span>
+
+<script>
+const textToType = `Review this app and harden its security. Add:
+
+1. Rate limiting on all public endpoints (IP + user-based, sensible defaults, graceful 429s).
+2. Strict input validation & sanitization on all user inputs (schema-based, type checks, length limits, reject unexpected fields).
+3. Secure API key handling (remove hard-coded keys, move to environment variables, rotate keys, ensure no keys are exposed client-side).
+
+Follow OWASP best practices, include clear comments, and do not break existing functionality.`;
+
+const container = document.getElementById('container');
+let index = 0;
+const durationMs = 1500;
+const charsCount = textToType.length;
+const startTimestamp = performance.now() + 500;
+
+function tick(now) {
+  if (now > startTimestamp) {
+    const elapsed = now - startTimestamp;
+    const progress = Math.min(elapsed / durationMs, 1);
+    index = Math.floor(progress * charsCount);
+    container.textContent = textToType.substring(0, index);
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    }
+  } else {
+    requestAnimationFrame(tick);
+  }
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

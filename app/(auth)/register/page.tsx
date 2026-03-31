@@ -6,6 +6,22 @@ import { useRouter } from 'next/navigation';
 import { Bus, Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters long" }).max(50, { message: "Name is too long" }),
+  email: z.string().email({ message: "Invalid email address format" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters long" })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .max(128, { message: "Password is too long" }),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -24,14 +40,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    // Basic Validation
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    
-    if (password.length < 6) {
-      setError("Password should be at least 6 characters");
+    // Schema Validation
+    const validation = registerSchema.safeParse({ name, email, password, confirmPassword });
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
       return;
     }
 

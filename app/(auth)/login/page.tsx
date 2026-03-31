@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { Bus, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email address format" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters long" })
+});
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +27,13 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Schema Validation
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
+      return;
+    }
 
     try {
       setIsLoading(true);
