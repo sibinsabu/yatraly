@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Bus, Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Bus, Mail, Lock, User, ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { z } from 'zod';
@@ -23,14 +23,18 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
   
   // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // UI State
   const [error, setError] = useState<string | null>(null);
@@ -60,8 +64,8 @@ export default function RegisterPage() {
         });
       }
       
-      // Success, route to home
-      router.push('/home');
+      // Success — redirect to intended page or home
+      router.push(redirectUrl || '/home');
       
     } catch (err: any) {
       console.error(err);
@@ -120,7 +124,7 @@ export default function RegisterPage() {
             <h2 className="text-3xl font-extrabold text-black tracking-tight">Create an account</h2>
             <p className="mt-3 text-lg text-gray-500 font-medium">
               Already have an account?{' '}
-              <Link href="/login" className="text-red-600 font-bold hover:text-red-500 transition-colors">
+              <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'} className="text-red-600 font-bold hover:text-red-500 transition-colors">
                 Sign in here
               </Link>
             </p>
@@ -180,13 +184,21 @@ export default function RegisterPage() {
                     <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
+                    className="block w-full pl-11 pr-12 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Create a strong password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
               
@@ -198,13 +210,21 @@ export default function RegisterPage() {
                     <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
+                    className="block w-full pl-11 pr-12 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Repeat your password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
@@ -244,5 +264,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-white"><div className="text-red-600 font-bold text-lg">Loading...</div></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

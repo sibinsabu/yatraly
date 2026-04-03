@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { 
   Bus, Star, Wifi, Coffee, Plug, ArrowRight,
-  Filter, ChevronDown, Check
+  Filter, ChevronDown, Check, Armchair
 } from 'lucide-react';
 
 // --- Dummy Data ---
@@ -241,9 +241,16 @@ function SearchResultsContent() {
                 <p className="text-sm font-bold text-green-600 mb-6 flex items-center gap-1">
                   <Check size={14} /> {bus.seatsAvailable} seats left
                 </p>
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 whitespace-nowrap">
+                <Link 
+                  href={{ 
+                    pathname: '/seats', 
+                    query: { busId: bus.id, from: rawFrom, to: rawTo, date: rawDate || '' } 
+                  }}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <Armchair size={18} />
                   Select Seats
-                </button>
+                </Link>
               </div>
 
             </div>

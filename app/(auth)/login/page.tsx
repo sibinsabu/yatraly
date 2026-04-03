@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Bus, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Bus, Mail, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { z } from 'zod';
@@ -13,12 +13,15 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters long" })
 });
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
 
   // Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   // UI State
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +44,8 @@ export default function LoginPage() {
       // Firebase authentication
       await signInWithEmailAndPassword(auth, email, password);
       
-      // Success, route to home
-      router.push('/home');
+      // Success — redirect to intended page or home
+      router.push(redirectUrl || '/home');
       
     } catch (err: any) {
       console.error(err);
@@ -101,7 +104,7 @@ export default function LoginPage() {
             <h2 className="text-3xl font-extrabold text-black tracking-tight">Sign in to your account</h2>
             <p className="mt-3 text-lg text-gray-500 font-medium">
               Don't have an account?{' '}
-              <Link href="/register" className="text-red-600 font-bold hover:text-red-500 transition-colors">
+              <Link href={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register'} className="text-red-600 font-bold hover:text-red-500 transition-colors">
                 Sign up instead
               </Link>
             </p>
@@ -148,13 +151,21 @@ export default function LoginPage() {
                     <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
+                    className="block w-full pl-11 pr-12 py-3 border border-gray-200 rounded-xl text-black bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium sm:text-sm"
                     placeholder="Enter your password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
             </div>
@@ -192,5 +203,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-white"><div className="text-red-600 font-bold text-lg">Loading...</div></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

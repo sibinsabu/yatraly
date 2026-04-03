@@ -3,12 +3,34 @@
 import { useState } from 'react';
 import { Search, Calendar, Clock, ShieldCheck, MapPin } from 'lucide-react';
 import CitySearchBox from '@/components/CitySearchBox';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function HomePage() {
+  const router = useRouter();
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState('');
+
+  const handleSearch = () => {
+    const searchParams = new URLSearchParams();
+    if (from) searchParams.set('from', from);
+    if (to) searchParams.set('to', to);
+    if (date) searchParams.set('date', date);
+    const searchUrl = `/search?${searchParams.toString()}`;
+
+    // Check current auth state
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      // User is logged in, go straight to search
+      router.push(searchUrl);
+    } else {
+      // Not logged in — redirect to login with a return URL
+      const redirectUrl = `/login?redirect=${encodeURIComponent(searchUrl)}`;
+      router.push(redirectUrl);
+    }
+  };
 
   return (
     <div className="flex-1 w-full relative bg-white">
@@ -57,13 +79,13 @@ export default function HomePage() {
             </div>
 
             {/* Search Button */}
-            <Link 
-              href={{ pathname: '/search', query: { from, to, date } }}
+            <button 
+              onClick={handleSearch}
               className="w-full md:w-auto bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-900 transition shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 transform hover:-translate-y-1"
             >
               <Search size={22} />
               Search
-            </Link>
+            </button>
           </div>
         </div>
         
